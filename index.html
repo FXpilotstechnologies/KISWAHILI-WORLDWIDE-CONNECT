@@ -1,0 +1,133 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>World Kiswahili Connect</title>
+  <meta name="description" content="Learn Kiswahili and connect with learners worldwide.">
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,sans-serif;background:#f4f8f5;color:#17352a}
+    header{background:#075e45;color:white;padding:22px 16px;text-align:center}
+    header h1{margin:0;font-size:27px}
+    header p{margin:9px 0 0}
+    main{max-width:520px;margin:25px auto;padding:16px}
+    .card{background:white;border-radius:16px;padding:22px;margin-bottom:18px;box-shadow:0 5px 20px #1232}
+    h2{margin-top:0}
+    label{display:block;margin-top:13px;font-weight:bold;font-size:14px}
+    input,select{width:100%;padding:13px;margin-top:6px;border:1px solid #ccd8d1;border-radius:8px;font-size:16px}
+    button{width:100%;padding:14px;margin-top:15px;background:#087650;color:white;border:0;border-radius:9px;font-weight:bold;font-size:16px}
+    button.secondary{background:#e4f2eb;color:#075e45}
+    .notice{font-size:14px;line-height:1.6;color:#53665b}
+    .status{margin-top:12px;overflow-wrap:anywhere}
+    footer{text-align:center;padding:20px;color:#64746b;font-size:13px}
+  </style>
+</head>
+<body>
+<header>
+  <h1>🌍 World Kiswahili Connect</h1>
+  <p>Learn Kiswahili. Connect Globally. Speak Confidently.</p>
+</header>
+<main>
+  <section class="card">
+    <h2>Karibu! Welcome</h2>
+    <p>Learn Kiswahili, meet language partners, and practise with people around the world.</p>
+    <p><strong>One-time membership: KSh 100</strong></p>
+    <p class="notice">Create an account first. Lessons and member connections require verified membership payment.</p>
+  </section>
+
+  <section class="card">
+    <h2>Create your account</h2>
+    <form id="signup">
+      <label for="name">Your name</label>
+      <input id="name" autocomplete="name" required maxlength="80">
+      <label for="country">Country</label>
+      <input id="country" autocomplete="country-name" required maxlength="80">
+      <label for="email">Email address</label>
+      <input id="email" type="email" autocomplete="email" required>
+      <label for="password">Password (at least 8 characters)</label>
+      <input id="password" type="password" autocomplete="new-password" minlength="8" required>
+      <button type="submit">Create account</button>
+    </form>
+    <p id="signupStatus" class="status" role="status"></p>
+  </section>
+
+  <section class="card">
+    <h2>Already registered?</h2>
+    <form id="login">
+      <label for="loginEmail">Email address</label>
+      <input id="loginEmail" type="email" autocomplete="email" required>
+      <label for="loginPassword">Password</label>
+      <input id="loginPassword" type="password" autocomplete="current-password" required>
+      <button type="submit">Sign in</button>
+      <button class="secondary" id="logout" type="button">Sign out</button>
+    </form>
+    <p id="loginStatus" class="status" role="status"></p>
+  </section>
+</main>
+<footer>World Kiswahili Connect © 2026</footer>
+
+<script type="module">
+  import { createClient } from
+    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+  // Replace these placeholders with your Supabase Project URL
+  // and publishable key. Never use a service_role or secret key here.
+  const SUPABASE_URL = "https://sizktfepybknedavfwrp.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_KmKL-0FnyZNgyl6n_8kdzA_fX9vd0ei";
+
+  const signupStatus = document.getElementById("signupStatus");
+  const loginStatus = document.getElementById("loginStatus");
+  const signupForm = document.getElementById("signup");
+  const loginForm = document.getElementById("login");
+
+  if (!SUPABASE_URL.startsWith("https://") ||
+      SUPABASE_KEY.startsWith("YOUR_")) {
+    signupStatus.textContent =
+      "Setup required: add your Supabase URL and publishable key to the code.";
+    document.querySelectorAll("form button").forEach(b => b.disabled = true);
+  } else {
+    const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    signupForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      signupStatus.textContent = "Creating your account...";
+      const name = document.getElementById("name").value.trim();
+      const country = document.getElementById("country").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: name, country } }
+      });
+
+      signupStatus.textContent = error
+        ? error.message
+        : data.session
+          ? "Account created. You can now sign in."
+          : "Check your email to confirm your account, then sign in.";
+    });
+
+    loginForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      loginStatus.textContent = "Signing in...";
+      const { error } = await supabase.auth.signInWithPassword({
+        email: document.getElementById("loginEmail").value.trim(),
+        password: document.getElementById("loginPassword").value
+      });
+      loginStatus.textContent = error
+        ? error.message
+        : "Signed in successfully. Payment access is not yet configured.";
+    });
+
+    document.getElementById("logout").addEventListener("click", async () => {
+      const { error } = await supabase.auth.signOut();
+      loginStatus.textContent = error ? error.message : "You are signed out.";
+    });
+  }
+</script>
+</body>
+</html>
